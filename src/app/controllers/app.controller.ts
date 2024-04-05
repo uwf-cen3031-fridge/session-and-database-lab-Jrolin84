@@ -12,7 +12,7 @@ export class AppController {
 
   private initializeRouter() {
 
-    this.router.get("/login", (req: Request, res: Response) => {
+    this.router.get("/login", function (req: any, res: any) {
       res.render("login");
     });
 
@@ -21,27 +21,31 @@ export class AppController {
       res.redirect("/");
     });
 
-    this.router.get("/logout", (req: any, res: Response) => {
-      req.session.destroy(() => {
-        res.redirect("/");
-      });
+    this.router.get("/logout", function (req:any, res: any) {
+      delete req.session.user;
+      res.render("login");
     });
 
-    this.router.get("/signup", function (req, res) {
+    this.router.get("/signup", function (req: any, res: any) {
       res.render("signup");
     });
 
-    this.router.post("/signup", (req: any, res) => {
+    this.router.post("/signup", async (req: any, res: any) => {
       const user = await this.userService.createUser(req.body.username, req.body.email, req.body.password);
       req.session.user = user;
       res.redirect("/");
     }); 
 
     //handling login submissions
-    this.router.post("/processLogin", async (this.router.post("/login", (req: any, res: Response) => {
-      req.session.user = req.body.username;
-      res.redirect("/");
-    })));
+    this.router.post("/processLogin", async (req: any, res: any) => {
+      const user = await this.userService.authenticateUser(req.body.username, req.body.password);
+      if (user) {
+        req.session.user = user;
+        res.redirect("/");
+      } else {
+        res.status(401).send("Invalid username or password");
+      }
+    });
 
     //protect the homepage
     const enforceLogin = (req: any, res: Response, next: any) => {
