@@ -12,8 +12,9 @@ export class AppController {
 
   private initializeRouter() {
 
-    this.router.get("/login", function (req: any, res: any) {
-      res.render("login");
+    
+    this.router.get("/login", function (req: any, res: Response) {
+            res.render("login");
     });
 
     this.router.post("/login", (req: any, res: Response) => {
@@ -44,23 +45,29 @@ export class AppController {
         res.redirect("/");
       } else {
         res.status(401).send("Invalid username or password");
+        
       }
     });
 
-    //protect the homepage
-    const enforceLogin = (req: any, res: Response, next: any) => {
-      if(req.session.user) {
+    // Enforce security
+    this.router.use((req: any, res, next) => {
+      // If the user is set in the session,
+      // pass them on
+      if (req.session.user) {
         next();
+
+        // Otherwise, send them to the login page
       } else {
-        res.redirect("/login");
+        res.render("login", {
+          error: "You need to log in first",
+        });
       }
-    };
+    });
 
-    //security middleware
-    this.router.use(enforceLogin);
-
+    
     // Serve the home page
     this.router.get("/",  (req: any, res: Response) => {
+      
       try {
         // Render the "home" template as HTML
         res.render("home", {
